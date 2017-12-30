@@ -3,10 +3,9 @@ var router = express.Router();
 var bcrypt = require('bcrypt');
 var date = require('date-and-time');
 var passport = require('passport');
-var session = require('express-session');
-var app = require('express')();
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
+
+
+
 
 
 /* GET home page. */
@@ -28,12 +27,9 @@ router.get('/instructor/instructor-profile', function(req, res, next) {
 
 
 router.get('/sockets', function(req, res, next) {
-    res.render('sockets/socket', { title: 'Learning Hub' });
+    res.render('sockets/sockets', { title: 'Learning Hub' });
 
 
-    io.on('connection', function(socket){
-        console.log('a user connected');
-    });
 });
 
 

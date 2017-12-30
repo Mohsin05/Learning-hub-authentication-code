@@ -9,7 +9,7 @@ var expressHbs=require('express-handlebars');
 var expressValidator = require('express-validator');
 var index = require('./routes/index');
 var users = require('./routes/users');
-var server = require('./bin/www');
+
 /*------------Authentication Packages----------------*/
 var session = require('express-session');
 var passport = require('passport');
@@ -19,7 +19,7 @@ var bcrypt= require('bcrypt');
 //the user will not log out.The below code is use to store session in the data base.
 
 var MySQLStore = require('express-mysql-session')(session);
-var io = require('socket.io').listen(server);
+
 
 var options = {
     host: 'localhost',
@@ -173,13 +173,20 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-// =======================sockets=============//
-io.sockets.on('connection', function (socket) {
-    console.log('A new user connected!');
-    socket.emit('info', { msg: 'The world is round, there is no up or down.' });
+
+
+/*=======================Sockets Part=============================*/
+var sockIO = require('socket.io')();
+app.sockIO = sockIO;
+sockIO.on('connection', function(socket){
+    console.log('A user connected!');
+
+    socket.on('chat message', function(msg){
+        sockIO.emit('chat message', msg);
+        console.log(msg);
+    });
 });
-
-
+/*=======================Sockets End=============================*/
 
 
 
