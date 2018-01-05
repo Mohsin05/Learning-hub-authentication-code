@@ -12,6 +12,15 @@
                     <!--                    <% if (message.length > 0) { %>
                                     <div class="alert alert-success col-sm-12"><%= message %></div>
                                     <% } %>-->
+                    {{#if errors}}
+                        <div class="alert alert-danger">
+                            <li>{{#each errors}}
+                                {{this.msg}}
+                            {{/each}}</li>
+                        </div>
+                    {{/if}}
+
+
                     <div class="form-group">
                         <label for="first_name" class="col-md-3 control-label">Username*</label>
                         <div class="col-md-9">

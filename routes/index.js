@@ -66,7 +66,9 @@ router.get('/after-login-page', authenticationMiddleware(), function (req, res, 
 });
 /*-------------------------------------------------------------------------------------------------*/
 router.post('/login', passport.authenticate('local', {
-        failureRedirect: '/login'
+        failureRedirect: '/login',
+        failureFlash : true // allow flash messages
+
     }), (req, res) => {
         var usertype = res.locals.usertype;
 
@@ -78,6 +80,8 @@ router.post('/login', passport.authenticate('local', {
         }
     }
 );
+
+
 /*------AuthenticationMiddleware() is used to restrict the page until the user is LogedIn---------*/
 router.get('/after-login-page', authenticationMiddleware(), function (req, res, next) {
     res.render('after-login-page/after-login-page', {title: 'Learning Hub'});
@@ -105,7 +109,7 @@ router.post('/register', function (req, res, next) {
     req.checkBody('username', 'Username can only contain letters, numbers, or underscores.').matches(/^[A-Za-z0-9_-]+$/, 'i');
     var errors = req.validationErrors();
     if (errors) {
-        res.render('homepage/index', {errors: errors});
+        res.render('user/signup', {errors: errors});
         return
     } else {
         const saltRounds = 10;
@@ -118,13 +122,26 @@ router.post('/register', function (req, res, next) {
         bcrypt.genSalt(saltRounds, function (err, salt) {
             bcrypt.hash(myPlaintextPassword, salt, function (err, hash) {
                 const bcyptPassword = hash;
+                //
+                // db.query('SELECT * FROM users where username = ?',username,function (err,result) {
+                //     if (err)return done(err);
+                //     if(result.length){
+                //         res.locals.errors = "The username already exist!";
+                //     }
+                //
+                // });
+
                 db.query('INSERT INTO user (username, email, password,usertype) VALUES (?,?,?,?)', [username, email, bcyptPassword, usertype], function (err, result, fields) {
                     if (err) throw err;
+
+
+                    if (result.length) {
+                        return done(null, false, req.flash('signupMessage', 'That username is already taken.'));
+                    }
+
                     //setting locals
                     app.locals.username = username;
-
                     /*Signing in the user when the registration is successful*/
-
                     db.query('SELECT LAST_INSERT_ID() as id', function (err, results, fields) {
                         if (err) {
                             throw err;
@@ -138,7 +155,6 @@ router.post('/register', function (req, res, next) {
                         * is written below*/
                         /*----The login function is passing the user_id to the serlyzing function which writes
                         the session */
-
                         req.login(user_id, username, function (err) {
                             if (err) {
                                 throw err;

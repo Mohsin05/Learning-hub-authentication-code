@@ -84,15 +84,14 @@ app.use(function (req, res, next) {
     res.locals.login_username = app.locals.username;
     res.locals.usertype = app.locals.usertype;
     next();
-})
+});
 
 /*-----------------------------------------------------------------------------------*/
 app.use('/', index);
 app.use('/users', users);
-
 /*----The local strategy is defined here which will verify the username and password----*/
-
 passport.use(new LocalStrategy(
+
     function (username, password, done) {
         //we are getting username and password from the form
              const db = require('./model/database-connection');
@@ -126,10 +125,9 @@ passport.use(new LocalStrategy(
         })
     }
 ));
-
 /*-------------------------------------------------------------------------------------*/
-
 // view engine setup
+
 app.engine('.hbs', expressHbs({defaultLayout: 'layout', extname: '.hbs'}));
 app.set('view engine', '.hbs');
 
