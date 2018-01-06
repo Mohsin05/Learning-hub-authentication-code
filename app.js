@@ -83,7 +83,7 @@ app.use(function (req, res, next) {
     res.locals.isAuthenticated = req.isAuthenticated();
     res.locals.login_username = app.locals.username;
     res.locals.usertype = app.locals.usertype;
-    console.log(res.locals.usertype);
+    //console.log(res.locals.usertype);
     next();
 });
 
@@ -116,41 +116,32 @@ passport.use('local-signup', new LocalStrategy({
         var errors = req.validationErrors();
         if (errors) {
             return done(null, false, req.flash('signupMessage', errors));
-        }
-        ;
-
+        };
         const saltRounds = 10;
         const usertype = req.body.usertype;
         const email = req.body.email;
         const myPlaintextPassword = password;
         const db = require('./model/database-connection');
         console.log(usertype);
-
         bcrypt.genSalt(saltRounds, function (err, salt) {
             bcrypt.hash(myPlaintextPassword, salt, function (err, hash) {
                 const bcyptPassword = hash;
-
                 db.query('SELECT username FROM user WHERE username = ?', [username], function (err, result,) {
                     if (err) {
-                        throw err;
-                    }
+                        throw err;}
                     if (result.length) {
                         return done(null, false, req.flash('signupUser', 'That username is already taken.'));
                     } else {
                         db.query('INSERT INTO user (username, email, password,usertype) VALUES (?,?,?,?)', [username, email, bcyptPassword, usertype], function (err, result, fields) {
                             if (err) throw err;
+                            req.session.username = username;
                             app.locals.username = username;
                             /*Signing in the user when the registration is successful*/
                             db.query('SELECT LAST_INSERT_ID() as id', function (err, results, fields) {
-
                                 if (err) {
-
-                                    throw err;
-                                }
+                                    throw err;}
                                 /*---Lets assign the user_id-------*/
-
                                 var user_id = results[0].id;
-
                                 /*---Login is Passport function,it will take the user id and
                                 store that directly into the session---*/
                                 /*---The login function works with the serlyzing and deserilizing fucntion which
@@ -218,8 +209,10 @@ passport.use('local-signin', new LocalStrategy({
             const usertype = result[0].usertype.toString();
             //assigining locals, with app.locals the variable have scope to this file. only so we hhave
             //defined them abovein the middle ware and make it availble globbaly.
+            req.session.username = username;
             app.locals.usertype = usertype;
             app.locals.username = username;
+
             //variable decaled with app.locals have scope only to this file. when locals declared with res.locals.
             // have scope to the whole project.
             //Here the bcrypt.compare , compare the password with the hash password, hash password is the password
@@ -227,12 +220,12 @@ passport.use('local-signin', new LocalStrategy({
             //we dont need the salt this time becs the bcrypt.compare does that automatically for us.
 
             bcrypt.compare(password, hash, function (err, response) {
-
+                console.log("My position is at 1");
                 if (response === true) {
-
+                    console.log("My position is at 3");
                     return done(null, {usertype: usertype});
                 } else {
-
+                    console.log("My position is at 4");
                     return done(null, false, req.flash('loginMessage', 'Oops! Wrong password.'));
                 }
             })

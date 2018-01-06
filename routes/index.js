@@ -17,7 +17,7 @@ router.get('/forum', function (req, res, next) {
 
 /* GET student profile page. */
 router.get('/student', authenticationMiddleware(), function (req, res, next) {
-           var username = res.locals.login_username;
+        var username = req.session.username ;
         var usertype = req.session.passport.user.usertype;
         if (usertype  == 'Student'){
             res.render('student/studentProfile', {for_frontend_username: username});
@@ -34,22 +34,24 @@ router.get('/faqs', function (req, res, next) {
 /* GET sign up page....... this has been changed but kept for copying the code*/
 router.get('/login', function (req, res, next) {
 
-
-    res.render('user/login', {errors: req.flash('loginMessage')});
+        if(req.isAuthenticated()){res.redirect('student')}else{
+    res.render('user/login', {errors: req.flash('loginMessage')})}
+// }
+    // else{
+    // res.redirect('student');
+// }
 });
 
 /* GET sign up page....... this has been changed but kept for copying the code*/
 router.get('/signup', function (req, res, next) {
-
-
-
-    res.render('user/signup', {signupErrors: req.flash('signupMessage'),userTakenError: req.flash('signupUser')});
-});
+    if(req.isAuthenticated()){res.redirect('student')}else{
+        res.render('user/signup', {signupErrors: req.flash('signupMessage'), userTakenError: req.flash('signupUser')});
+    }
+    });
 
 /*------AuthenticationMiddleware() is used to restrict the page until the user is LogedIn---------*/
 router.get('/instructor', authenticationMiddleware(), function (req, res, next) {
-
-        var username = res.locals.login_username;
+        var username = req.session.username ;
         var usertype = req.session.passport.user.usertype;
         if (usertype  == 'Student'){
             res.redirect('student');
@@ -61,11 +63,8 @@ router.get('/instructor', authenticationMiddleware(), function (req, res, next) 
 // We will be using the passport authentication function instead of the call back function
 // here the passport authticate will find the local stratgy in the app.js and will pass the
 //form data to that where we will connect with data base and verify everything
-
-
-
 router.post('/login', passport.authenticate('local-signin', {
-        failureRedirect: '/login',
+         failureRedirect: '/login',
         failureFlash: true // allow flash messages
 
     }), (req, res) => {
@@ -79,7 +78,6 @@ router.post('/login', passport.authenticate('local-signin', {
         }
     }
 );
-
 router.post('/register', passport.authenticate('local-signup', {
         failureRedirect: '/signup',
         failureFlash: true
@@ -122,7 +120,6 @@ passport.deserializeUser(function (user_id, done) {
 /*--------Function to Restricting Page when user is not LogedIn-------------*/
 function authenticationMiddleware() {
     return (req, res, next) => {
-        console.log(`req.session.passport.user: ${JSON.stringify(req.session.passport)}`);
 
         if (req.isAuthenticated()) return next();
 
