@@ -26,9 +26,7 @@ router.get('/student', authenticationMiddleware(), function (req, res, next) {
     }
     // let username = app.locals.username;
 ///    console.log(res.locals.for_frontend_username);
-
     res.render('student/studentProfile', {for_frontend_username: username});
-
 });
 
 /* GET faqs page. */
