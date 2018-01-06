@@ -9,7 +9,7 @@ var expressHbs = require('express-handlebars');
 var expressValidator = require('express-validator');
 var index = require('./routes/index');
 var users = require('./routes/users');
-
+var flash = require('connect-flash');
 /*------------Authentication Packages----------------*/
 var session = require('express-session');
 var passport = require('passport');
@@ -70,7 +70,7 @@ app.use(session({
     saveUninitialized: false //whether or not crete session on each start of website or when only user is loign
     //cookie: {secure: true}
 
-}))
+}));
 
 /*---------------------Passport-----------------------*/
 app.use(passport.initialize());
@@ -87,20 +87,32 @@ app.use(function (req, res, next) {
 });
 
 /*-----------------------------------------------------------------------------------*/
+app.use(flash());
 app.use('/', index);
 app.use('/users', users);
 /*----The local strategy is defined here which will verify the username and password----*/
-passport.use(new LocalStrategy(
-
-    function (username, password, done) {
+passport.use('local-signup', new LocalStrategy({
+        // by default, local strategy uses username and password, we will override with email
+        usernameField: 'username',
+        passwordField: 'password',
+        passReqToCallback: true // allows us to pass back the entire request to the callback
+    },
+    function (req, username, password, done) {
         //we are getting username and password from the form
-             const db = require('./model/database-connection');
-             db.query('SELECT usertype,password,id FROM user WHERE username = ?', [username], function (err, result, fields) {
+        const db = require('./model/database-connection');
+        db.query('SELECT usertype,password,id FROM user WHERE username = ?', [username], function (err, result, fields) {
+            if (err) {
+
+                throw  err
+            }
+            if (!result.length) {
+
+                return done(null, false, req.flash('loginMessage', 'No user found.'));
+            }
 
             //iF THE PASSWORD DOES MATCH found or USER DOES NOT EXIST THEN WE ASSIGN RESULT.LENGTH===0
             //Here the result index 0 has password which is not proper form so we access the
             //value of the key password in the array of result the convert that into the String
-
             const hash = result[0].password.toString();
             const userID = result[0].id.toString();
             const usertype = result[0].usertype.toString();
@@ -108,18 +120,20 @@ passport.use(new LocalStrategy(
             //defined them abovein the middle ware and make it availble globbaly.
             app.locals.usertype = usertype;
             app.locals.username = username;
-
-             //variable decaled with app.locals have scope only to this file. when locals declared with res.locals.
+            //variable decaled with app.locals have scope only to this file. when locals declared with res.locals.
             // have scope to the whole project.
             //Here the bcrypt.compare , compare the password with the hash password, hash password is the password
             //we are getting from the data base, the 'password' field below is the password which user enters.
             //we dont need the salt this time becs the bcrypt.compare does that automatically for us.
 
             bcrypt.compare(password, hash, function (err, response) {
+
                 if (response === true) {
+
                     return done(null, {user_id: userID});
                 } else {
-                    return done(null, false);
+
+                    return done(null, false, req.flash('loginMessage', 'Oops! Wrong password.'));
                 }
             })
         })
