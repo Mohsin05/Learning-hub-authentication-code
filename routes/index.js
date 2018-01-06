@@ -4,7 +4,8 @@ var bcrypt = require('bcrypt');
 var date = require('date-and-time');
 var passport = require('passport');
 var app = express();
-
+// var flash = require('connect-flash');
+// app.use(flash());
 // app.locals.username = "Dummy Username";
 console.log(app.locals.username);
 
@@ -70,7 +71,7 @@ router.get('/after-login-page', authenticationMiddleware(), function (req, res, 
 /*-------------------------------------------------------------------------------------------------*/
 
 
-router.post('/login', passport.authenticate('local-signup', {
+router.post('/login', passport.authenticate('local-signin', {
         failureRedirect: '/login',
         failureFlash: true // allow flash messages
 
@@ -87,21 +88,22 @@ router.post('/login', passport.authenticate('local-signup', {
 );
 
 
-router.post('/login', passport.authenticate('local', {
-        failureRedirect: '/login',
-        failureFlash: true // allow flash messages
-
-    }), (req, res) => {
-        var usertype = res.locals.usertype;
-
-        if (usertype == 'Student') {
-            res.redirect('student');
-        }
-        if (usertype == 'Instructor') {
-            res.redirect('instructor');
-        }
-    }
-);
+//
+// router.post('/register', passport.authenticate('local', {
+//         failureRedirect: '/signup',
+//         failureFlash: true // allow flash messages
+//
+//     }), (req, res) => {
+//         var usertype = res.locals.usertype;
+//
+//         if (usertype == 'Student') {
+//             res.redirect('student');
+//         }
+//         if (usertype == 'Instructor') {
+//             res.redirect('instructor');
+//         }
+//     }
+// );
 
 
 /*------AuthenticationMiddleware() is used to restrict the page until the user is LogedIn---------*/
@@ -116,6 +118,14 @@ router.get('/logout', function (req, res, next) {
     res.redirect('/');
 });
 /*------------------Singup Post Request---------------------------------------*/
+
+
+
+
+
+
+
+
 router.post('/register', function (req, res, next) {
     req.checkBody('username', 'Username field cannot be empty.').notEmpty();
     req.checkBody('username', 'Username must be between 4-15 characters long.').len(4, 15);
@@ -145,7 +155,7 @@ router.post('/register', function (req, res, next) {
         bcrypt.genSalt(saltRounds, function (err, salt) {
             bcrypt.hash(myPlaintextPassword, salt, function (err, hash) {
                 const bcyptPassword = hash;
-                db.query('SELECT * FROM user where username = ?', username, function (err, result, fields) {
+                db.query('SELECT * FROM user where username = ?', username, function (req, err, result, fields) {
                     if (err) {
                         throw err;
                     }

@@ -90,8 +90,16 @@ app.use(function (req, res, next) {
 app.use(flash());
 app.use('/', index);
 app.use('/users', users);
+
+
 /*----The local strategy is defined here which will verify the username and password----*/
-passport.use('local-signup', new LocalStrategy({
+
+
+
+
+
+
+passport.use('local-signin', new LocalStrategy({
         // by default, local strategy uses username and password, we will override with email
         usernameField: 'username',
         passwordField: 'password',
@@ -137,8 +145,7 @@ passport.use('local-signup', new LocalStrategy({
                 }
             })
         })
-    }
-));
+    }));
 /*-------------------------------------------------------------------------------------*/
 // view engine setup
 
