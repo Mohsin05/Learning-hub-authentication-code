@@ -96,10 +96,11 @@ app.use('/users', users);
 /*----The local strategy is defined here which will verify the username and password----*/
 
 
-
-passport.use('local-signup', new LocalStrategy({ usernameField: 'username',
-    passwordField: 'password',
-    passReqToCallback: true },
+passport.use('local-signup', new LocalStrategy({
+        usernameField: 'username',
+        passwordField: 'password',
+        passReqToCallback: true
+    },
     function (req, username, password, done) {
         req.checkBody('username', 'Username field cannot be empty.').notEmpty();
         req.checkBody('username', 'Username must be between 4-15 characters long.').len(4, 15);
@@ -113,43 +114,37 @@ passport.use('local-signup', new LocalStrategy({ usernameField: 'username',
 // Additional validation to ensure username is alphanumeric with underscores and dashes
         req.checkBody('username', 'Username can only contain letters, numbers, or underscores.').matches(/^[A-Za-z0-9_-]+$/, 'i');
         var errors = req.validationErrors();
-             if (errors){
-            return done(null, false, req.flash('loginMessage', errors));};
+        if (errors) {
+            return done(null, false, req.flash('loginMessage', errors));
+        }
+        ;
 
-            const saltRounds = 10;
-            const usertype = req.body.usertype;
-            const email = req.body.email;
-            const myPlaintextPassword = password;
-            const db = require('./model/database-connection');
-            console.log(usertype);
+        const saltRounds = 10;
+        const usertype = req.body.usertype;
+        const email = req.body.email;
+        const myPlaintextPassword = password;
+        const db = require('./model/database-connection');
+        console.log(usertype);
 
         bcrypt.genSalt(saltRounds, function (err, salt) {
             bcrypt.hash(myPlaintextPassword, salt, function (err, hash) {
                 const bcyptPassword = hash;
-                console.log("My place is at 1");
+
                 db.query('SELECT username FROM user WHERE username = ?', [username], function (err, result,) {
-                    console.log("My place is at 2");
                     if (err) {
-                        console.log("My place is at 3");
                         throw err;
                     }
                     if (result.length) {
-                        console.log("My place is at 4");
                         return done(null, false, req.flash('signupMessage', 'That username is already taken.'));
-
                     } else {
-                        console.log("My place is at 5");
                         db.query('INSERT INTO user (username, email, password,usertype) VALUES (?,?,?,?)', [username, email, bcyptPassword, usertype], function (err, result, fields) {
                             if (err) throw err;
-                            //setting localsconsole.log("My place is at 1");
-
-                            console.log("My place is at 6");
                             app.locals.username = username;
                             /*Signing in the user when the registration is successful*/
                             db.query('SELECT LAST_INSERT_ID() as id', function (err, results, fields) {
-                                console.log("My place is at 7");
+
                                 if (err) {
-                                    console.log("My place is at 8");
+
                                     throw err;
                                 }
                                 /*---Lets assign the user_id-------*/
@@ -163,20 +158,20 @@ passport.use('local-signup', new LocalStrategy({ usernameField: 'username',
                                 /*----The login function is passing the user_id to the serlyzing function which writes
                                 the session */
                                 req.login(user_id, username, function (err) {
-                                    console.log("My place is at 9");
-                                    if (err) {console.log("My place is at 10");
+
+                                    if (err) {
                                         throw err;
                                     }
                                     if (usertype == 'Student') {
-                                        console.log("My place is at 11");
-                                        return done(null,{usertype: 'Student'});
+
+                                        return done(null, {usertype: 'Student'});
                                     }
                                     if (usertype == 'Instructor') {
-                                        console.log("My place is at 12");
+
                                         //to access the usertype we will use the passport session as]
                                         //req.session.passport.user.usertype
                                         //Acccesing the variables through sessions
-                                        return done(null,{usertype: 'Instructor'});
+                                        return done(null, {usertype: 'Instructor'});
                                     }
                                 })
                             })
@@ -193,7 +188,7 @@ passport.use('local-signup', new LocalStrategy({ usernameField: 'username',
         })
 
 
-            }));
+    }));
 
 
 passport.use('local-signin', new LocalStrategy({
@@ -235,7 +230,7 @@ passport.use('local-signin', new LocalStrategy({
 
                 if (response === true) {
 
-                    return done(null, {username: username});
+                    return done(null, {usertype: usertype});
                 } else {
 
                     return done(null, false, req.flash('loginMessage', 'Oops! Wrong password.'));
