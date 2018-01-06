@@ -35,7 +35,7 @@ router.get('/faqs', function (req, res, next) {
 router.get('/login', function (req, res, next) {
 
 
-    res.render('user/login', {errors: req.flash('signupMessage')});
+    res.render('user/login', {errors: req.flash('loginMessage')});
 });
 
 /* GET sign up page....... this has been changed but kept for copying the code*/
