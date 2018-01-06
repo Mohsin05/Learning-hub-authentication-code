@@ -35,12 +35,15 @@ router.get('/faqs', function (req, res, next) {
 router.get('/login', function (req, res, next) {
 
 
-    res.render('user/login', {errors: req.flash('loginMessage')});
+    res.render('user/login', {errors: req.flash('signupMessage')});
 });
 
 /* GET sign up page....... this has been changed but kept for copying the code*/
 router.get('/signup', function (req, res, next) {
-    res.render('user/signup', {signupErrors: req.flash('signupMessage')});
+
+
+
+    res.render('user/signup', {signupErrors: req.flash('signupMessage'),userTakenError: req.flash('signupUser')});
 });
 
 /*------AuthenticationMiddleware() is used to restrict the page until the user is LogedIn---------*/

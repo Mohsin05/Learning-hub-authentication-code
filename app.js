@@ -115,7 +115,7 @@ passport.use('local-signup', new LocalStrategy({
         req.checkBody('username', 'Username can only contain letters, numbers, or underscores.').matches(/^[A-Za-z0-9_-]+$/, 'i');
         var errors = req.validationErrors();
         if (errors) {
-            return done(null, false, req.flash('loginMessage', errors));
+            return done(null, false, req.flash('signupMessage', errors));
         }
         ;
 
@@ -135,7 +135,7 @@ passport.use('local-signup', new LocalStrategy({
                         throw err;
                     }
                     if (result.length) {
-                        return done(null, false, req.flash('signupMessage', 'That username is already taken.'));
+                        return done(null, false, req.flash('signupUser', 'That username is already taken.'));
                     } else {
                         db.query('INSERT INTO user (username, email, password,usertype) VALUES (?,?,?,?)', [username, email, bcyptPassword, usertype], function (err, result, fields) {
                             if (err) throw err;
