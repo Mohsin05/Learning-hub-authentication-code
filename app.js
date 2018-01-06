@@ -83,6 +83,7 @@ app.use(function (req, res, next) {
     res.locals.isAuthenticated = req.isAuthenticated();
     res.locals.login_username = app.locals.username;
     res.locals.usertype = app.locals.usertype;
+    console.log(res.locals.usertype);
     next();
 });
 
@@ -96,7 +97,103 @@ app.use('/users', users);
 
 
 
+passport.use('local-signup', new LocalStrategy({ usernameField: 'username',
+    passwordField: 'password',
+    passReqToCallback: true },
+    function (req, username, password, done) {
+        req.checkBody('username', 'Username field cannot be empty.').notEmpty();
+        req.checkBody('username', 'Username must be between 4-15 characters long.').len(4, 15);
+        req.checkBody('email', 'The email you entered is invalid, please try again.').isEmail();
+        req.checkBody('email', 'Email address must be between 4-100 characters long.').len(4, 100);
+        req.checkBody('password', 'Password must be between 8-100 characters long.').len(8, 100);
+        req.checkBody("password", "Password must include one lowercase character").matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[^a-zA-Z0-9]).{8,}$/, "i");
+        req.checkBody("password", "One uppercase character, a number, a special character.").matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[^a-zA-Z0-9]).{8,}$/, "i");
+        // req.checkBody('passwordMatch', 'Password must be between 8-100 characters long.').len(8, 100);
+        // req.checkBody('passwordMatch', 'Passwords do not match, please try again.').equals(req.body.password);
+// Additional validation to ensure username is alphanumeric with underscores and dashes
+        req.checkBody('username', 'Username can only contain letters, numbers, or underscores.').matches(/^[A-Za-z0-9_-]+$/, 'i');
+        var errors = req.validationErrors();
+             if (errors){
+            return done(null, false, req.flash('loginMessage', errors));};
 
+            const saltRounds = 10;
+            const usertype = req.body.usertype;
+            const email = req.body.email;
+            const myPlaintextPassword = password;
+            const db = require('./model/database-connection');
+            console.log(usertype);
+
+        bcrypt.genSalt(saltRounds, function (err, salt) {
+            bcrypt.hash(myPlaintextPassword, salt, function (err, hash) {
+                const bcyptPassword = hash;
+                console.log("My place is at 1");
+                db.query('SELECT username FROM user WHERE username = ?', [username], function (err, result,) {
+                    console.log("My place is at 2");
+                    if (err) {
+                        console.log("My place is at 3");
+                        throw err;
+                    }
+                    if (result.length) {
+                        console.log("My place is at 4");
+                        return done(null, false, req.flash('signupMessage', 'That username is already taken.'));
+
+                    } else {
+                        console.log("My place is at 5");
+                        db.query('INSERT INTO user (username, email, password,usertype) VALUES (?,?,?,?)', [username, email, bcyptPassword, usertype], function (err, result, fields) {
+                            if (err) throw err;
+                            //setting localsconsole.log("My place is at 1");
+
+                            console.log("My place is at 6");
+                            app.locals.username = username;
+                            /*Signing in the user when the registration is successful*/
+                            db.query('SELECT LAST_INSERT_ID() as id', function (err, results, fields) {
+                                console.log("My place is at 7");
+                                if (err) {
+                                    console.log("My place is at 8");
+                                    throw err;
+                                }
+                                /*---Lets assign the user_id-------*/
+
+                                var user_id = results[0].id;
+
+                                /*---Login is Passport function,it will take the user id and
+                                store that directly into the session---*/
+                                /*---The login function works with the serlyzing and deserilizing fucntion which
+                                * is written below*/
+                                /*----The login function is passing the user_id to the serlyzing function which writes
+                                the session */
+                                req.login(user_id, username, function (err) {
+                                    console.log("My place is at 9");
+                                    if (err) {console.log("My place is at 10");
+                                        throw err;
+                                    }
+                                    if (usertype == 'Student') {
+                                        console.log("My place is at 11");
+                                        return done(null,{usertype: 'Student'});
+                                    }
+                                    if (usertype == 'Instructor') {
+                                        console.log("My place is at 12");
+                                        //to access the usertype we will use the passport session as]
+                                        //req.session.passport.user.usertype
+                                        //Acccesing the variables through sessions
+                                        return done(null,{usertype: 'Instructor'});
+                                    }
+                                })
+                            })
+
+                        })
+
+
+                    }
+
+
+                });
+
+            })
+        })
+
+
+            }));
 
 
 passport.use('local-signin', new LocalStrategy({
@@ -138,7 +235,7 @@ passport.use('local-signin', new LocalStrategy({
 
                 if (response === true) {
 
-                    return done(null, {user_id: userID});
+                    return done(null, {username: username});
                 } else {
 
                     return done(null, false, req.flash('loginMessage', 'Oops! Wrong password.'));

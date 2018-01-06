@@ -16,6 +16,11 @@
                             {{/each}}
                         </div>
                     {{/if}}
+                    {{#if signupErrors}}
+                        <div class="alert alert-danger">
+                            {{signupErrors}}
+                        </div>
+                    {{/if}}
 
 
                     <div class="form-group">
