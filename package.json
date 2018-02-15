@@ -30,6 +30,10 @@
     "popper": "^1.0.0",
     "randomstring": "^1.1.5",
     "serve-favicon": "~2.4.2",
-    "socket.io": "^2.0.4"
+    "socket.io": "^2.0.4",
+    "boom": "6.0.0",
+    "cryptiles": "4.0.1",
+    "hoek": "5.0.3",
+    "sntp": "3.0.0"
   }
 }
